@@ -17,29 +17,6 @@ body {
     padding: 20px;
 }
 
-.pdf-method {
-    margin: 15px 0;
-    padding: 10px;
-    background: #f8f9ff;
-    border-radius: 8px;
-    border: 1px solid #e0e7ff;
-}
-
-.pdf-method label {
-    display: block;
-    margin: 5px 0;
-    cursor: pointer;
-}
-
-.pdf-method input[type="radio"] {
-    margin-right: 10px;
-}
-
-.modal-content iframe {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
 header {
     text-align: center;
     color: white;
@@ -216,5 +193,4 @@ footer {
     color: white;
     margin-top: 40px;
     padding: 20px;
-
 }
