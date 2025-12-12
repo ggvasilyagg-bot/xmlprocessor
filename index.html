@@ -62,23 +62,19 @@
                 </div>
 
                 <!-- Преобразование PDF -->
-                <div class="pdf-section">
-                    <h3><i class="fas fa-file-pdf"></i> Преобразование в PDF</h3>
+               <div class="pdf-section">
+                    <h3><i class="fas fa-file-export"></i> Экспорт отчета</h3>
                     <div class="pdf-options">
                         <label>
                             <input type="checkbox" id="includeValidation" checked>
                             Включить результаты валидации
                         </label>
-                        <label>
-                            <input type="checkbox" id="prettyPrint" checked>
-                            Форматированный вывод
-                        </label>
                     </div>
                     <button class="btn btn-pdf" id="convertBtn" disabled>
-                        <i class="fas fa-file-export"></i> Конвертировать в PDF
+                        <i class="fas fa-download"></i> Экспортировать отчет
                     </button>
                     <div id="pdfPreview" class="pdf-preview">
-                        <!-- Preview будет генерироваться здесь -->
+                        <p><i class="fas fa-info-circle"></i> Доступные форматы: TXT, PDF через печать браузера</p>
                     </div>
                 </div>
 
@@ -122,5 +118,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
