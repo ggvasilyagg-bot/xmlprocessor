@@ -1,0 +1,12 @@
+project/
+│
+├── index.html          # Основная страница
+├── style.css          # Стили
+├── script.js          # JavaScript логика
+├── upload.php         # Бэкенд для обработки (если нужен PHP)
+├── api/              # API endpoints
+│   ├── upload.js     # Обработчик загрузки
+│   └── convert.js    # Конвертация в PDF
+├── schemas/          # XSD схемы
+│   └── validation.xsd
+└── README.md

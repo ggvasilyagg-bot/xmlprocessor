@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML Processor - Валидация и конвертация в PDF</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-code"></i> XML Processor</h1>
+            <p>Загрузите XML файл для валидации и конвертации в PDF</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Загрузка файлов -->
+            <div class="upload-section">
+                <div class="drop-area" id="dropArea">
+                    <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                    <h3>Перетащите XML файл сюда</h3>
+                    <p>или</p>
+                    <button class="btn" id="browseBtn">Выберите файл</button>
+                    <input type="file" id="fileInput" accept=".xml" hidden>
+                </div>
+
+                <!-- XSD схема -->
+                <div class="xsd-section">
+                    <h3><i class="fas fa-check-circle"></i> XSD Валидация</h3>
+                    <select id="xsdSelect" class="form-control">
+                        <option value="builtin">Встроенная схема</option>
+                        <option value="custom">Загрузить свою схему</option>
+                    </select>
+                    <div id="customXsd" style="display: none; margin-top: 10px;">
+                        <input type="file" id="xsdFileInput" accept=".xsd">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Результаты валидации -->
+            <div class="results-section">
+                <div class="validation-results">
+                    <h3><i class="fas fa-search"></i> Результаты валидации</h3>
+                    <div id="validationOutput" class="output">
+                        <div class="status pending">
+                            <i class="fas fa-clock"></i>
+                            <span>Ожидание загрузки файла...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Преобразование PDF -->
+                <div class="pdf-section">
+                    <h3><i class="fas fa-file-pdf"></i> Преобразование в PDF</h3>
+                    <div class="pdf-options">
+                        <label>
+                            <input type="checkbox" id="includeValidation" checked>
+                            Включить результаты валидации
+                        </label>
+                        <label>
+                            <input type="checkbox" id="prettyPrint" checked>
+                            Форматированный вывод
+                        </label>
+                    </div>
+                    <button class="btn btn-pdf" id="convertBtn" disabled>
+                        <i class="fas fa-file-export"></i> Конвертировать в PDF
+                    </button>
+                    <div id="pdfPreview" class="pdf-preview">
+                        <!-- Preview будет генерироваться здесь -->
+                    </div>
+                </div>
+
+                <!-- История загрузок -->
+                <div class="history-section">
+                    <h3><i class="fas fa-history"></i> История обработки</h3>
+                    <div id="historyList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о API -->
+        <div class="api-info">
+            <h3><i class="fas fa-code"></i> API для Postman</h3>
+            <div class="code-block">
+                <p><strong>Endpoint:</strong> <code>https://ваш-username.github.io/api/upload</code></p>
+                <p><strong>Method:</strong> POST</p>
+                <p><strong>Body:</strong> form-data с ключом "xmlFile"</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>XML Processor &copy; 2024 | Работает на GitHub Pages</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для PDF -->
+    <div id="pdfModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Предварительный просмотр PDF</h2>
+            <div id="pdfContent"></div>
+            <button class="btn btn-download" id="downloadPdf">
+                <i class="fas fa-download"></i> Скачать PDF
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
