@@ -188,314 +188,227 @@ async function validateXML() {
     }
 }
 
-// Генерация PDF
-// Генерация PDF с поддержкой кириллицы
-async function generatePDF() {
+// Удалите все сложные PDF функции и добавьте эти:
+
+// Простая функция для создания текстового отчета
+function generateTextReport() {
     if (!currentXmlContent) return;
     
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        // Настройка шрифтов для кириллицы
-        doc.setFont("helvetica", "normal");
-        
-        // Заголовок
-        doc.setFontSize(20);
-        doc.setTextColor(40, 40, 40);
-        doc.text('Отчет по XML файлу', 105, 20, { align: 'center' });
-        
-        // Информация
-        doc.setFontSize(12);
-        doc.text(`Дата создания: ${new Date().toLocaleDateString('ru-RU')}`, 20, 35);
-        doc.text(`Время: ${new Date().toLocaleTimeString('ru-RU')}`, 20, 42);
-        
-        // Результаты валидации
-        doc.setFontSize(14);
-        doc.setTextColor(0, 100, 0);
-        doc.text('Результаты валидации:', 20, 55);
-        
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        
-        if (validationResults && validationResults.isValid) {
-            doc.setTextColor(0, 128, 0);
-            doc.text('✓ Валидация успешна', 20, 65);
-        } else if (validationResults && !validationResults.isValid) {
-            doc.setTextColor(255, 0, 0);
-            doc.text('✗ Ошибка валидации', 20, 65);
-        } else {
-            doc.text('Валидация не выполнена', 20, 65);
-        }
-        
-        // XML содержимое
-        doc.setFontSize(14);
-        doc.setTextColor(40, 40, 40);
-        doc.text('Содержимое XML:', 20, 80);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        
-        // Форматируем XML с учетом кириллицы
-        const formattedXML = formatXML(currentXmlContent);
-        
-        // Разбиваем текст на строки
-        const lines = doc.splitTextToSize(formattedXML, 170);
-        
-        // Проверяем, влезает ли текст на одну страницу
-        const startY = 90;
-        const lineHeight = 7;
-        const pageHeight = 270; // Высота страницы A4 в мм
-        let y = startY;
-        
-        for (let i = 0; i < lines.length; i++) {
-            // Если не хватает места на странице, добавляем новую
-            if (y > pageHeight) {
-                doc.addPage();
-                y = 20;
-            }
-            doc.text(lines[i], 20, y);
-            y += lineHeight;
-        }
-        
-        // Добавляем информацию о файле
-        doc.addPage();
-        doc.setFontSize(16);
-        doc.text('Информация о системе', 105, 20, { align: 'center' });
-        
-        doc.setFontSize(12);
-        doc.text(`XML строк: ${formattedXML.split('\n').length}`, 20, 40);
-        doc.text(`Размер файла: ${new Blob([currentXmlContent]).size} байт`, 20, 50);
-        doc.text(`Дата обработки: ${new Date().toLocaleString('ru-RU')}`, 20, 60);
-        
-        // Сохраняем PDF для скачивания
-        window.generatedPDF = doc;
-        
-        // Показываем предпросмотр
-        showPDFPreview(doc);
-        
-    } catch (error) {
-        console.error('Ошибка при создании PDF:', error);
-        alert('Ошибка при создании PDF. Проверьте консоль для подробностей.');
-    }
+    const reportContent = `
+XML ОТЧЕТ
+===========
+Дата: ${new Date().toLocaleString('ru-RU')}
+Статус валидации: ${validationResults?.isValid ? 'Успешно' : 'Ошибка'}
+Сообщение: ${validationResults?.message || 'Нет данных'}
+
+СОДЕРЖИМОЕ XML:
+---------------
+${formatXML(currentXmlContent)}
+
+СТАТИСТИКА:
+-----------
+Размер XML: ${currentXmlContent.length} символов
+Количество строк: ${formatXML(currentXmlContent).split('\n').length}
+Кодировка: UTF-8
+Время обработки: ${new Date().toLocaleTimeString('ru-RU')}
+
+Сгенерировано XML Processor (GitHub Pages)
+`;
+    
+    return reportContent;
 }
 
-// Альтернативный способ через HTML2Canvas (лучшая поддержка кириллицы)
-async function generatePDFWithCanvas() {
-    if (!currentXmlContent) return;
+// Скачать как текстовый файл
+function downloadAsText() {
+    const report = generateTextReport();
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
     
-    try {
-        // Создаем временный контейнер для конвертации
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.width = '800px';
-        tempContainer.style.padding = '20px';
-        tempContainer.style.background = 'white';
-        tempContainer.style.fontFamily = "'Roboto', sans-serif";
-        
-        // Заполняем контейнер содержимым
-        tempContainer.innerHTML = `
-            <h1 style="color: #2c3e50; text-align: center; margin-bottom: 30px;">Отчет по XML файлу</h1>
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `xml-отчет-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    saveToHistory(`xml-отчет-${Date.now()}.txt`, 'text');
+}
+
+// Создать HTML для печати
+function createPrintableHTML() {
+    const report = generateTextReport();
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML Отчет</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            margin: 20px;
+            background: white;
+            color: black;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        .xml-content {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #ddd;
+        }
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+        .status-error {
+            color: red;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        @media print {
+            body { margin: 0; padding: 10px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>XML ОТЧЕТ</h1>
+        <p>Дата создания: ${new Date().toLocaleString('ru-RU')}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Статус валидации</h2>
+        <p class="${validationResults?.isValid ? 'status-success' : 'status-error'}">
+            ${validationResults?.isValid ? '✓ ВАЛИДАЦИЯ УСПЕШНА' : '✗ ОШИБКА ВАЛИДАЦИИ'}
+        </p>
+        <p>${validationResults?.message || ''}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Содержимое XML</h2>
+        <div class="xml-content">${formatXML(currentXmlContent)}</div>
+    </div>
+    
+    <div class="section">
+        <h2>Статистика</h2>
+        <ul>
+            <li>Размер XML: ${currentXmlContent.length} символов</li>
+            <li>Количество строк: ${formatXML(currentXmlContent).split('\n').length}</li>
+            <li>Кодировка: UTF-8</li>
+            <li>Время обработки: ${new Date().toLocaleTimeString('ru-RU')}</li>
+        </ul>
+    </div>
+    
+    <div class="footer">
+        <p>Сгенерировано XML Processor • GitHub Pages • ${new Date().getFullYear()}</p>
+        <button class="no-print" onclick="window.print()">🖨️ Печать</button>
+        <button class="no-print" onclick="window.close()">✖️ Закрыть</button>
+    </div>
+    
+    <script>
+        // Автоматически открыть диалог печати
+        setTimeout(() => {
+            if (window.location.search.includes('autoprint')) {
+                window.print();
+            }
+        }, 500);
+    </script>
+</body>
+</html>`;
+    
+    return htmlContent;
+}
+
+// Открыть в новом окне для печати
+function openForPrint() {
+    const html = createPrintableHTML();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(html);
+    printWindow.document.close();
+}
+
+// Использовать встроенный PDF принтер браузера
+function printToPDF() {
+    const html = createPrintableHTML();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+
+// Обновите модальное окно для отображения вариантов
+function showExportOptions() {
+    const pdfContent = document.getElementById('pdfContent');
+    
+    pdfContent.innerHTML = `
+        <div class="export-options">
+            <h3>Выберите способ экспорта:</h3>
             
-            <div style="margin-bottom: 30px;">
-                <h2 style="color: #3498db;">Информация</h2>
-                <p><strong>Дата создания:</strong> ${new Date().toLocaleString('ru-RU')}</p>
-                <p><strong>Статус валидации:</strong> 
-                    ${validationResults && validationResults.isValid ? 
-                        '<span style="color: green;">✓ Успешно</span>' : 
-                        '<span style="color: red;">✗ Ошибка</span>'}
-                </p>
-            </div>
-            
-            <div style="margin-bottom: 30px;">
-                <h2 style="color: #3498db;">Содержимое XML</h2>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
-                    <pre style="font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; margin: 0;">
-${formatXML(currentXmlContent)}
-                    </pre>
+            <div class="option-card" onclick="downloadAsText()">
+                <div class="option-icon">📄</div>
+                <div class="option-content">
+                    <h4>Текстовый файл (.txt)</h4>
+                    <p>Простой текстовый файл с отчетом</p>
+                    <small>Лучшая совместимость</small>
                 </div>
             </div>
             
-            <div style="border-top: 2px solid #eee; padding-top: 20px; color: #7f8c8d; font-size: 12px;">
-                <p>Сгенерировано XML Processor • GitHub Pages • ${new Date().getFullYear()}</p>
+            <div class="option-card" onclick="openForPrint()">
+                <div class="option-icon">🖨️</div>
+                <div class="option-content">
+                    <h4>Версия для печати</h4>
+                    <p>Откроет в новом окне для печати или сохранения как PDF</p>
+                    <small>Использует встроенный PDF принтер браузера</small>
+                </div>
             </div>
-        `;
-        
-        document.body.appendChild(tempContainer);
-        
-        // Конвертируем в canvas
-        const canvas = await html2canvas(tempContainer, {
-            scale: 2, // Увеличиваем качество
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-        });
-        
-        // Удаляем временный контейнер
-        document.body.removeChild(tempContainer);
-        
-        // Создаем PDF из canvas
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        const imgWidth = 210; // Ширина A4 в мм
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        
-        // Добавляем изображение в PDF
-        const imgData = canvas.toDataURL('image/png');
-        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        
-        // Сохраняем PDF для скачивания
-        window.generatedPDF = doc;
-        
-        // Показываем предпросмотр
-        showPDFPreview(doc);
-        
-    } catch (error) {
-        console.error('Ошибка при создании PDF через canvas:', error);
-        // Пробуем стандартный способ
-        generatePDF();
-    }
-}
-
-// Функция для показа предпросмотра
-function showPDFPreview(doc) {
-    const pdfContent = document.getElementById('pdfContent');
-    
-    // Создаем iframe для предпросмотра
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    
-    pdfContent.innerHTML = `
-        <iframe src="${url}" width="100%" height="400px" style="border: none;"></iframe>
-        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-            <p><strong>Информация о PDF:</strong></p>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>Размер: ${(blob.size / 1024).toFixed(2)} KB</li>
-                <li>Страниц: ${doc.internal.getNumberOfPages()}</li>
-                <li>Формат: A4</li>
-                <li>Кодировка: UTF-8</li>
-            </ul>
+            
+            <div class="option-card" onclick="printToPDF()">
+                <div class="option-icon">📊</div>
+                <div class="option-content">
+                    <h4>PDF через печать</h4>
+                    <p>Откроет диалог печати для сохранения как PDF</p>
+                    <small>Выберите "Сохранить как PDF" в принтере</small>
+                </div>
+            </div>
+            
+            <div class="option-info">
+                <p><strong>Примечание:</strong> GitHub Pages - статический хостинг, поэтому генерация PDF напрямую не работает. Используйте опции выше.</p>
+            </div>
         </div>
     `;
     
-    // Показываем модальное окно
     document.getElementById('pdfModal').style.display = 'block';
-    
-    // Очищаем URL при закрытии
-    const modal = document.getElementById('pdfModal');
-    const closeBtn = document.querySelector('.close');
-    
-    closeBtn.onclick = function() {
-        modal.style.display = 'none';
-        URL.revokeObjectURL(url);
-    };
 }
 
-// Обновленная функция скачивания PDF
-document.getElementById('downloadPdf').onclick = function() {
-    if (window.generatedPDF) {
-        const fileName = `xml-отчет-${Date.now()}.pdf`;
-        window.generatedPDF.save(fileName);
-        saveToHistory(fileName, 'pdf');
-    }
-};
-
-// Обновленная функция formatXML для правильной обработки кириллицы
-function formatXML(xml) {
-    // Удаляем BOM если есть
-    xml = xml.replace(/^\uFEFF/, '');
-    
-    // Проверяем кодировку
-    const encodingMatch = xml.match(/encoding=["']([^"']+)["']/i);
-    if (encodingMatch && !encodingMatch[1].toLowerCase().includes('utf')) {
-        console.warn('XML не в UTF-8 кодировке. Могут быть проблемы с кириллицей.');
-    }
-    
-    const PADDING = '  ';
-    const reg = /(>)(<)(\/*)/g;
-    let formatted = '';
-    let pad = 0;
-    let inCdata = false;
-    
-    // Разбиваем на строки
-    xml = xml.replace(reg, '$1\n$2$3');
-    
-    // Обрабатываем каждую строку
-    xml.split('\n').forEach(node => {
-        // Проверяем CDATA секции
-        if (node.includes('<![CDATA[')) {
-            inCdata = true;
-        }
-        if (node.includes(']]>')) {
-            inCdata = false;
-        }
-        
-        if (inCdata) {
-            formatted += node + '\n';
-            return;
-        }
-        
-        // Определяем отступ
-        let indent = 0;
-        if (node.match(/.+<\/\w[^>]*>$/)) {
-            // Закрывающий тег на той же строке
-            indent = 0;
-        } else if (node.match(/^<\/\w/) && pad !== 0) {
-            // Закрывающий тег
-            pad -= 1;
-        } else if (node.match(/^<\w[^>]*[^/]>.*$/)) {
-            // Открывающий тег
-            indent = 1;
-        } else {
-            indent = 0;
-        }
-        
-        // Добавляем отступ
-        formatted += PADDING.repeat(pad) + node + '\n';
-        pad += indent;
-    });
-    
-    return formatted;
-}
-
-// Обновляем обработчик кнопки конвертации
-document.getElementById('convertBtn').onclick = function() {
-    // Используем метод с canvas для лучшей поддержки кириллицы
-    generatePDFWithCanvas();
-};
-
-// Добавляем опцию выбора метода конвертации в HTML
-function addPDFOptionsToHTML() {
-    const pdfSection = document.querySelector('.pdf-section');
-    
-    const optionsHTML = `
-        <div class="pdf-method">
-            <label>
-                <input type="radio" name="pdfMethod" value="canvas" checked>
-                Высокое качество (с поддержкой кириллицы)
-            </label>
-            <label>
-                <input type="radio" name="pdfMethod" value="standard">
-                Быстрая конвертация
-            </label>
-        </div>
-    `;
-    
-    pdfSection.querySelector('.pdf-options').insertAdjacentHTML('afterend', optionsHTML);
-}
-
-// Обновленный обработчик конвертации
-document.getElementById('convertBtn').onclick = function() {
-    const method = document.querySelector('input[name="pdfMethod"]:checked').value;
-    
-    if (method === 'canvas') {
-        generatePDFWithCanvas();
-    } else {
-        generatePDF();
-    }
-};
+// Обновите обработчик кнопки конвертации
+document.getElementById('convertBtn').onclick = showExportOptions;
     // Заголовок
     doc.setFontSize(20);
     doc.setTextColor(102, 126, 234);
