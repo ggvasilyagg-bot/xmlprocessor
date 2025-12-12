@@ -3,26 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XML Processor - Валидация и конвертация в PDF</title>
+    <title>XML Processor - Валидация и экспорт XML файлов</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Подключаем шрифт для кириллицы -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Библиотека для поддержки UTF-8 в PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- Для правильного отображения кириллицы -->
-    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
-    <!-- Для создания PDF из HTML -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.5/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.5/vfs_fonts.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1><i class="fas fa-file-code"></i> XML Processor</h1>
-            <p>Загрузите XML файл для валидации и конвертации в PDF</p>
+            <p>Загрузите XML файл для валидации и экспорта отчетов</p>
         </header>
 
         <div class="main-content">
@@ -40,11 +30,27 @@
                 <div class="xsd-section">
                     <h3><i class="fas fa-check-circle"></i> XSD Валидация</h3>
                     <select id="xsdSelect" class="form-control">
-                        <option value="builtin">Встроенная схема</option>
+                        <option value="builtin">Встроенная схема (проверка структуры)</option>
                         <option value="custom">Загрузить свою схему</option>
                     </select>
                     <div id="customXsd" style="display: none; margin-top: 10px;">
                         <input type="file" id="xsdFileInput" accept=".xsd">
+                    </div>
+                </div>
+
+                <!-- Примеры для тестирования -->
+                <div class="examples-section">
+                    <h3><i class="fas fa-vial"></i> Тестовые примеры</h3>
+                    <div class="example-buttons">
+                        <button class="btn-example" onclick="loadExample('каталог')">
+                            <i class="fas fa-box"></i> Каталог товаров
+                        </button>
+                        <button class="btn-example" onclick="loadExample('заказы')">
+                            <i class="fas fa-shopping-cart"></i> Заказы
+                        </button>
+                        <button class="btn-example" onclick="loadExample('пользователи')">
+                            <i class="fas fa-users"></i> Пользователи
+                        </button>
                     </div>
                 </div>
             </div>
@@ -61,27 +67,33 @@
                     </div>
                 </div>
 
-                <!-- Преобразование PDF -->
-               <div class="pdf-section">
+                <!-- Экспорт -->
+                <div class="pdf-section">
                     <h3><i class="fas fa-file-export"></i> Экспорт отчета</h3>
                     <div class="pdf-options">
                         <label>
                             <input type="checkbox" id="includeValidation" checked>
                             Включить результаты валидации
                         </label>
+                        <label>
+                            <input type="checkbox" id="prettyPrint" checked>
+                            Форматированный вывод XML
+                        </label>
                     </div>
                     <button class="btn btn-pdf" id="convertBtn" disabled>
                         <i class="fas fa-download"></i> Экспортировать отчет
                     </button>
                     <div id="pdfPreview" class="pdf-preview">
-                        <p><i class="fas fa-info-circle"></i> Доступные форматы: TXT, PDF через печать браузера</p>
+                        <p><i class="fas fa-info-circle"></i> Доступные форматы: TXT, HTML для печати</p>
                     </div>
                 </div>
 
                 <!-- История загрузок -->
                 <div class="history-section">
                     <h3><i class="fas fa-history"></i> История обработки</h3>
-                    <div id="historyList"></div>
+                    <div id="historyList">
+                        <p class="empty">История пуста</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -90,34 +102,30 @@
         <div class="api-info">
             <h3><i class="fas fa-code"></i> API для Postman</h3>
             <div class="code-block">
-                <p><strong>Endpoint:</strong> <code>https://ваш-username.github.io/api/upload</code></p>
-                <p><strong>Method:</strong> POST</p>
-                <p><strong>Body:</strong> form-data с ключом "xmlFile"</p>
+                <p><strong>Внимание:</strong> GitHub Pages поддерживает только статические файлы.</p>
+                <p><strong>Альтернатива:</strong> Используйте эту страницу для загрузки файлов через интерфейс.</p>
+                <p><strong>Для API:</strong> Рассмотрите использование <a href="https://vercel.com" target="_blank">Vercel</a> или <a href="https://www.netlify.com" target="_blank">Netlify</a> с serverless функциями.</p>
             </div>
         </div>
 
         <footer>
-            <p>XML Processor &copy; 2024 | Работает на GitHub Pages</p>
+            <p>XML Processor &copy; 2024 | Работает на GitHub Pages | Кириллица поддерживается</p>
         </footer>
     </div>
 
-    <!-- Модальное окно для PDF -->
+    <!-- Модальное окно для экспорта -->
     <div id="pdfModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Предварительный просмотр PDF</h2>
-            <div id="pdfContent"></div>
-            <button class="btn btn-download" id="downloadPdf">
-                <i class="fas fa-download"></i> Скачать PDF
-            </button>
+            <h2>Выберите способ экспорта</h2>
+            <div id="pdfContent" class="pdf-content">
+                <!-- Сюда загружаются варианты экспорта -->
+            </div>
         </div>
     </div>
 
+    <!-- Дополнительные скрипты -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
