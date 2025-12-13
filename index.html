@@ -127,5 +127,41 @@
     <!-- Дополнительные скрипты -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
+    <script>
+  (function() {
+    const visitorId = localStorage.getItem('visitorId') || 
+                      'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('visitorId', visitorId);
+    
+    const data = {
+      page: window.location.href,
+      referrer: document.referrer || 'Прямой заход',
+      visitorId: visitorId,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+      language: navigator.language
+    };
+    
+    fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        description: 'Аналитика посещений',
+        public: false,
+        files: {
+          [`visit_${Date.now()}.json`]: {
+            content: JSON.stringify(data, null, 2)
+          }
+        }
+      })
+    }).catch(console.error);
+  })();
+</script>
+                    
 </body>
 </html>
+
